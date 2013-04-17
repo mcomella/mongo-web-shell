@@ -43,6 +43,70 @@ var mongoWebShell = (function () {
     // TODO: Merge #25: Parse <input> content; remove console.log. Make AJAX
     // request based on parsed input. On success/error, return output to
     // console, at class mws-in-shell-response.
+    var y = esprima.parse(data);
+
+    var body = y.body[0];
+    var expression = body.expression;
+
+    switch (expression.type) {
+      // We will have to support other types of expressions as well if we
+      // need to support javascript statements.
+      case 'CallExpression':
+        // This is just supporting the basic versions of parsing arguments
+        var arguments = "";
+
+        if (expression.arguments.length > 0) {
+          var properties = expression.arguments[0].properties;
+
+          for (var itr = 0; itr < properties.length; itr++) {
+            var property = properties[itr];
+
+            if (property.key.type == "Literal") {
+              arguments += property.key.value + ':' +
+                     property.value.raw + ','
+            }
+            else if (property.key.type == "Identifier") {
+              arguments += property.key.name + ':' +
+                     property.value.raw + ',';
+            }
+          }
+
+          arguments = arguments.substr(0, arguments.length - 1);
+        }
+
+        var callee = expression.callee;
+        // Get the function which is being called
+        var funName = callee.property.name;
+        switch (funName) {
+          case 'find':
+            var db = callee.object.object.name;
+            var collection = callee.object.property.name;
+
+            var obj = new Object();
+
+            obj.query = "find";
+            obj.db = db;
+            obj.collection = collection;
+            obj.arguments = arguments;
+            break;
+          case 'save':
+            var db = callee.object.object.name;
+            var collection = callee.object.property.name;
+
+            var obj = new Object();
+
+            obj.query = "save";
+            obj.db = db;
+            obj.collection = collection;
+            obj.arguments = arguments;
+            break;
+        }
+        break;
+      default:
+        console.log('Unknown expression type.');
+        break;
+    }
+    console.log(obj);
   }
 
   function attachShellInputHandler($shell, mwsResourceID) {
@@ -71,7 +135,7 @@ var mongoWebShell = (function () {
           if (!data.res_id) {
             // TODO: Print error in shell. Improve error below.
             console.log('No res_id received!', data);
-            return;
+            //return;
           }
           attachShellInputHandler($shell, data.res_id);
           $shell.find('.mws-input')[0].disabled = false;
