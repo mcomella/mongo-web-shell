@@ -52,52 +52,51 @@ var mongoWebShell = (function () {
       // need to support javascript statements.
       case 'CallExpression':
         // This is just supporting the basic versions of parsing arguments
-        var arguments = "";
+        var args = {};
 
         if (expression.arguments.length > 0) {
           var properties = expression.arguments[0].properties;
-
           for (var itr = 0; itr < properties.length; itr++) {
             var property = properties[itr];
-
-            if (property.key.type == "Literal") {
-              arguments += property.key.value + ':' +
-                     property.value.raw + ','
-            }
-            else if (property.key.type == "Identifier") {
-              arguments += property.key.name + ':' +
-                     property.value.raw + ',';
-            }
+            args[property.key.name] = property.value.value;
           }
-
-          arguments = arguments.substr(0, arguments.length - 1);
         }
+        console.log(args);
 
         var callee = expression.callee;
         // Get the function which is being called
         var funName = callee.property.name;
         switch (funName) {
           case 'find':
-            var db = callee.object.object.name;
             var collection = callee.object.property.name;
-
-            var obj = new Object();
-
-            obj.query = "find";
-            obj.db = db;
-            obj.collection = collection;
-            obj.arguments = arguments;
+            var obj = {
+              'db': mwsResourceID
+            };
+            var url = MWS_BASE_RES_URL + '/' + mwsResourceID + '/db/' +
+                collection + '/find';
+            $.get(url, obj, function (data, textStatus, jqXHR) {
+              insertResponse($output, data.result);
+            }, 'json');
             break;
-          case 'save':
-            var db = callee.object.object.name;
+          case 'insert':
             var collection = callee.object.property.name;
+            var obj = {
+              'db': mwsResourceID,
+              'document': args
+            };
+            var url = MWS_BASE_RES_URL + '/' + mwsResourceID + '/db/' +
+                collection + '/insert';
 
-            var obj = new Object();
-
-            obj.query = "save";
-            obj.db = db;
-            obj.collection = collection;
-            obj.arguments = arguments;
+            $.ajax({
+              type: "POST",
+              url: url,
+              data: JSON.stringify(obj),
+              dataType: 'json',
+              contentType: 'application/json',
+              success: function (data, textStatus, jqXHR) {
+                console.log('Post successful.');
+              }
+            }).fail(function (a, b, c) { console.log(a, b, c); });
             break;
         }
         break;
@@ -106,9 +105,9 @@ var mongoWebShell = (function () {
         break;
     }
     console.log(obj);
+  }
 
-    // TODO: Make ajax request.
-
+  function insertResponse($output, data) {
     //upon recieveing output in a string w/ each line separated by a new line, add each line to the shell
     var responseLines = data.split("\n"); //data is the object returned by the AJAX request
     for (var i = 0; i < responseLines.length; i++){

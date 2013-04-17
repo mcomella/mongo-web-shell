@@ -93,18 +93,10 @@ def db_collection_find(res_id, collection_name):
     result = list(mongo_cursor)
     return dumps(result)
 
-@app.route('/mws/<res_id>/db/<collection_name>/insert', methods=['POST'])
-@crossdomain(origin=REQUEST_ORIGIN)
+@app.route('/mws/<res_id>/db/<collection_name>/insert', methods=['OPTIONS', 'POST'])
+@crossdomain(headers='Content-Type', origin=REQUEST_ORIGIN)
 def db_collection_insert(res_id, collection_name):
-    if 'document' in request.form:
-        try:
-            document = loads(request.form['document'])
-        except:
-            # TODO: return error to client
-            pass
-    else:
-        # TODO: return an error. You must have document/s for insert.
-        pass
+    document = request.json['document']
 
     result = db.collection_insert(res_id, collection_name, document)
     return dumps(result)

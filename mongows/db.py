@@ -16,14 +16,14 @@ def get_connection():
     return client
 
 def collection_find(res_id, collection, arguments):
-    client = get_connection()
+    mongo_client = get_connection()
 
-    if res_id in mongo_client:
+    if hasattr(mongo_client, res_id):
         db = mongo_client[res_id]
     else:
         # TODO: Throw an exception
         pass
-    if not collection in db:
+    if not hasattr(db, collection):
         # TODO: Throw an exception
         pass
 
@@ -33,14 +33,14 @@ def collection_find(res_id, collection, arguments):
     return mongo_cursor
 
 def collection_insert(res_id, collection, document):
-    client = get_connection()
+    mongo_client = get_connection()
 
-    if res_id in mongo_client:
+    if hasattr(mongo_client, res_id):
         db = mongo_client[res_id]
     else:
         # TODO: Throw an exception
         pass
-    if not collection in db:
+    if not hasattr(db, collection):
         # TODO: Throw an exception
         pass
 
