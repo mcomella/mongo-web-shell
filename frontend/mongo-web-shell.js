@@ -74,9 +74,10 @@ var mongoWebShell = (function () {
             };
             var url = MWS_BASE_RES_URL + '/' + mwsResourceID + '/db/' +
                 collection + '/find';
-            $.get(url, obj, function (data, textStatus, jqXHR) {
-              insertResponse($output, data.result);
-            }, 'json');
+            $.getJSON(url, obj, function (data, textStatus, jqXHR) {
+              console.log('GET Success:', data);
+              insertResponse($output, data);
+            });
             break;
           case 'insert':
             var collection = callee.object.property.name;
@@ -109,14 +110,17 @@ var mongoWebShell = (function () {
 
   function insertResponse($output, data) {
     //upon recieveing output in a string w/ each line separated by a new line, add each line to the shell
-    var responseLines = data.split("\n"); //data is the object returned by the AJAX request
-    for (var i = 0; i < responseLines.length; i++){
-      if (i === responseLines.length - 1) {
-        break; //the last line will be an empty newline, dont want to print that
+    var responseLines = data.result; //data is the object returned by the AJAX request
+    console.log(responseLines.length);
+    responseLines.forEach(function (line, index, array) {
+      var out = '{ ';
+      for (var key in line) {
+        out += '"' + key + '" : ' + line[key] + ' ';
       }
-      var line = '<li>' + responseLines[i] + '</li>';
-      $output.append(line);
-    }
+      out += '}';
+      var html = '<li>' + out + '</li>';
+      $output.append(html);
+    });
   }
 
   function attachShellInputHandler($shell, mwsResourceID) {

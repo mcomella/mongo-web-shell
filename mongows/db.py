@@ -28,7 +28,7 @@ def collection_find(res_id, collection, arguments):
         pass
 
     db = client[res_id]
-    mongo_cursor = db[collection].find(arguments)
+    mongo_cursor = db[collection].find(arguments, {'_id': 0})
 
     return mongo_cursor
 

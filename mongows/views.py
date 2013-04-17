@@ -75,23 +75,17 @@ def keep_mws_alive(res_id):
     # TODO: Reset timeout period on mws resource with the given id.
     return '{}'
 
-@app.route('/mws/<res_id>/db/<collection_name>/find', methods=['GET'])
+@app.route('/mws/<res_id>/db/<collection_name>/find', methods=['GET', 'OPTIONS'])
 @crossdomain(origin=REQUEST_ORIGIN)
 def db_collection_find(res_id, collection_name):
-    if 'arguments' in request.form:
-        try:
-            arguments = loads(request.form['arguments'])
-        except:
-            # TODO: return error to client
-            pass
-    else:
-        arguments = {}
-
+    arguments = {}
     mongo_cursor = db.collection_find(res_id, collection_name, arguments)
     # Get the results from the cursor and convert it to JSON format before
     # returning
     result = list(mongo_cursor)
-    return dumps(result)
+    out = {'result': result}
+    from flask import jsonify
+    return jsonify(out)
 
 @app.route('/mws/<res_id>/db/<collection_name>/insert', methods=['OPTIONS', 'POST'])
 @crossdomain(headers='Content-Type', origin=REQUEST_ORIGIN)
