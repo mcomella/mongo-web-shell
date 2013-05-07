@@ -47,7 +47,7 @@ goals. Some things we missed:
     * The associated API calls
 * Sufficient error handling
 * Garbage collection of inactive server resources (i.e. deleting resources that
-  are no longer in use)
+  are no longer in use) (to be completed before we hand off)
 * Protection against simple malicious queries (like inserting large amounts of
   data)
 * Some documentation is under spec'd (to be completed before we hand off)
